@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./popup.css";
 import { convertTextToSpeech } from "./TextFunction";
 import { translateText } from "./translateText";
-import { pauseOnStart, handleVideo } from "./popupFunctions";
+import { pauseOnStart, handleVideo, uploadVoices } from "./popupFunctions";
 import { FaPlay, FaPause, FaVolumeMute } from "react-icons/fa";
 import DotLoader from "react-spinners/DotLoader";
 
@@ -23,28 +23,34 @@ const Popup = () => {
   //this send message to the background script
   chrome.runtime.sendMessage({ type: "POPUP_READY" });
 
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === "YOUTUBE_VIDEO_ID") {
-      const videoID = message.videoID;
-      const voiceID = message.VoiceID;
-      console.log("Received YouTube Video ID in popup:", videoID, voiceID);
-      setVideoSmt(videoID);
+  let uploadVoicesCalled = false;
 
-      // Use the YouTube video ID in your popup script
+  chrome.runtime.onMessage.addListener(
+    async (message, sender, sendResponse) => {
+      if (message.type === "YOUTUBE_VIDEO_ID" && !uploadVoicesCalled) {
+        const videoID = message.videoID;
+        uploadVoicesCalled = true; // Set the flag to indicate that it's been called
 
-      // here is where the elevenlab voice
-      if (voiceID) {
-        setVoiceRef(voiceID.voice_id);
-        voiceR = voiceID.voice_id;
+        const voiceID = await uploadVoices(videoID);
+
+        console.log("Received YouTube Video ID in popup:", videoID, voiceID);
+
+        // Use the YouTube video ID in your popup script
+
+        // here is where the elevenlab voice
+        if (voiceID && interpretationLanguage) {
+          setVoiceRef(voiceID.voice_id);
+          voiceR = voiceID.voice_id;
+          fetchSubtitles(videoID, inputLanguage);
+        }
       }
     }
-  });
+  );
 
-  useEffect(() => {
-    fetchSubtitles(videoSmt, inputLanguage);
-
-    // Remove the getTranslation call from here
-  }, [interpretationLanguage]);
+  // useEffect(() => {
+  //   // fetchSubtitles(videoSmt, inputLanguage);
+  //   // Remove the getTranslation call from here
+  // }, [interpretationLanguage]);
 
   const joinSubtitles = (subtitles) => {
     const joinedSubtitles = subtitles
@@ -130,13 +136,6 @@ const Popup = () => {
 
       {recording ? (
         <>
-          {/* <div
-            className="bg-white w-full rounded-lg p-4 mb-4 overflow-auto"
-            style={{ maxHeight: "200px" }}
-          >
-            <p className="poppin text-gray-800">{parag}</p>
-          </div> */}
-
           <div className="flex items-center justify-center">
             <audio
               controls
