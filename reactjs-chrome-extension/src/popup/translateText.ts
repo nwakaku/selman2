@@ -9,7 +9,7 @@ export const translateText = async (inputLanguage, text, targetLanguage) => {
     method: 'POST',
     headers: {
       'content-type': 'application/x-www-form-urlencoded',
-      'X-RapidAPI-Key': 'ce47871234msha1c35e5dc69ca52p117ba4jsn1dc1a0fa24c6',
+      'X-RapidAPI-Key': 'a6712fef88msh7f67c78baeaa13dp194b67jsn48e3040f04c0',
       'X-RapidAPI-Host': 'text-translator2.p.rapidapi.com',
     },
     body: formData,

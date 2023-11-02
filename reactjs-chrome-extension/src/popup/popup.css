@@ -12,3 +12,34 @@ body {
     font-size: 15px;
     font-weight: 700;
 }
+
+/* Style the default text of the options */
+select option {
+    background-color: white; /* Background color */
+    color: #333; /* Text color */
+    padding: 10px; /* Padding */
+  }
+  
+  /* Style the hovered option */
+  select option:hover {
+    background-color: #f0f0f0;
+  }
+  
+  /* Style the selected option */
+  select option:checked {
+    background-color: #3490dc;
+    color: #fff;
+  }
+  
+  /* Style the dropdown arrow icon (if it's shown) */
+  select::-ms-expand {
+    display: none; /* For Internet Explorer */
+  }
+  select::after {
+    content: "\25BC"; /* Unicode character for a down arrow or customize it */
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+  }
+  

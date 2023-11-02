@@ -6,19 +6,18 @@ import { pauseOnStart, handleVideo, uploadVoices } from "./popupFunctions";
 import { FaPlay, FaPause, FaVolumeMute } from "react-icons/fa";
 import DotLoader from "react-spinners/DotLoader";
 
-let voiceR;
+let videoID;
 
 const Popup = () => {
   //something is here
 
   const [subtitles, setSubtitles] = useState([]);
-  const [interpretationLanguage, setInterpretationLanguage] = useState();
+  const [interpretationLanguage, setInterpretationLanguage] = useState("");
   const [inputLanguage, setInputLanguage] = useState("");
   const [parag, setParag] = useState("");
   const [voiceRef, setVoiceRef] = useState();
   const [recording, setRecording] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
-  const [videoSmt, setVideoSmt] = useState();
 
   //this send message to the background script
   chrome.runtime.sendMessage({ type: "POPUP_READY" });
@@ -28,29 +27,27 @@ const Popup = () => {
   chrome.runtime.onMessage.addListener(
     async (message, sender, sendResponse) => {
       if (message.type === "YOUTUBE_VIDEO_ID" && !uploadVoicesCalled) {
-        const videoID = message.videoID;
+        videoID = message.videoID;
         uploadVoicesCalled = true; // Set the flag to indicate that it's been called
 
-        const voiceID = await uploadVoices(videoID);
-
-        console.log("Received YouTube Video ID in popup:", videoID, voiceID);
+        console.log("Received YouTube Video ID in popup:", videoID);
 
         // Use the YouTube video ID in your popup script
 
         // here is where the elevenlab voice
-        if (voiceID && interpretationLanguage) {
-          setVoiceRef(voiceID.voice_id);
-          voiceR = voiceID.voice_id;
-          fetchSubtitles(videoID, inputLanguage);
-        }
+        // if (interpretationLanguage) {
+        //   // setVoiceRef(voiceID.voice_id);
+        //   // voiceR = voiceID.voice_id;
+        // }
       }
     }
   );
 
-  // useEffect(() => {
-  //   // fetchSubtitles(videoSmt, inputLanguage);
-  //   // Remove the getTranslation call from here
-  // }, [interpretationLanguage]);
+  const mute = () => {
+    chrome.runtime.sendMessage({ action: "toggleMute" });
+  };
+
+  mute();
 
   const joinSubtitles = (subtitles) => {
     const joinedSubtitles = subtitles
@@ -59,39 +56,49 @@ const Popup = () => {
     return joinedSubtitles;
   };
 
-  const fetchSubtitles = async (videoID, lang = inputLanguage) => {
+  const fetchSubtitles = async (
+    videoID,
+    lang = inputLanguage,
+    interpretationLanguage
+  ) => {
     try {
       const response = await fetch(
         `http://localhost:5000/api/captions?videoID=${videoID}&lang=${lang}`
       );
-      const data = await response.json();
-      const subtitles = data.subtitles;
-      // console.log(subtitles);
-      if (joinSubtitles(subtitles)) {
-        console.log(joinSubtitles(subtitles));
-        const getTranslation = async () => {
-          const joinedSubtitles = joinSubtitles(subtitles);
-          // setParag(joinedSubtitles);
+      const VoiceR = await uploadVoices(videoID);
 
-          const quicken = await translateText(
-            inputLanguage,
-            joinedSubtitles,
-            interpretationLanguage
-          );
-          const translatedText = quicken.data.translatedText;
-          console.log(translatedText);
+      if (VoiceR) {
+        const data = await response.json();
+        const subtitles = data.subtitles;
+        // console.log(subtitles);
+        if (joinSubtitles(subtitles)) {
+          console.log(joinSubtitles(subtitles));
+          const getTranslation = async () => {
+            const joinedSubtitles = joinSubtitles(subtitles);
+            // setParag(joinedSubtitles);
 
-          convertTextToSpeech(voiceR, translatedText).then((audioUrl) => {
-            setRecording(audioUrl);
-          });
+            const quicken = await translateText(
+              inputLanguage,
+              joinedSubtitles,
+              interpretationLanguage
+            );
+            const translatedText = quicken.data.translatedText;
+            console.log(translatedText);
 
-          setParag(translatedText);
-        };
-        getTranslation();
-      } else {
-        console.log("nothing here");
+            convertTextToSpeech(VoiceR.voice_id, translatedText).then(
+              (audioUrl) => {
+                setRecording(audioUrl);
+              }
+            );
+
+            setParag(translatedText);
+          };
+          getTranslation();
+        } else {
+          console.log("nothing here");
+        }
+        setSubtitles(subtitles);
       }
-      setSubtitles(subtitles);
     } catch (error) {
       console.error("Error fetching subtitles:", error);
     }
@@ -101,12 +108,9 @@ const Popup = () => {
     setInputLanguage(e.target.value);
   };
 
-  const handleLanguageChange = (e) => {
+  const handleLanguageChange = async (e) => {
     setInterpretationLanguage(e.target.value);
-  };
-
-  const mute = () => {
-    chrome.runtime.sendMessage({ action: "toggleMute" });
+    await fetchSubtitles(videoID, inputLanguage, e.target.value);
   };
 
   const toggleVideo = () => {
@@ -141,13 +145,13 @@ const Popup = () => {
               controls
               id="audioElement"
               src={recording}
-              className="rounded-lg shadow-lg"
+              className="rounded-lg shadow-lg invisible"
             >
               Your browser does not support the audio element.
             </audio>
           </div>
 
-          <div className="mt-3 flex justify-center space-x-10">
+          <div className=" flex justify-center space-x-10">
             <button
               className="text-green-500 hover:text-green-700"
               onClick={handleVideo}
@@ -162,15 +166,6 @@ const Popup = () => {
               }}
             >
               <FaPause className="w-5 h-5" />
-            </button>
-
-            <button
-              className="text-red-500 hover:text-red-700"
-              onClick={() => {
-                mute();
-              }}
-            >
-              <FaVolumeMute className="w-5 h-5" />
             </button>
           </div>
         </>

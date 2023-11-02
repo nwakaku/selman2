@@ -36,30 +36,23 @@ chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
         // Check if the current tab is a YouTube page
         if (isYouTubeURL(currentTabURL)) {
           const videoID = getYouTubeVideoID(currentTabURL);
-          // const searchParam = getYouTubeSearchParam(currentTabURL);
           if (videoID) {
             console.log('YouTube Video ID:', videoID);
             let VoiceID;
-  
-            // // Check if VoiceID is already present
-            // if (!VoiceID) {
-            //   VoiceID = await uploadVoices(videoID);
-            //   console.log(VoiceID.voice_id);
-            //   console.log(`Here is where voiceID is declared: ${VoiceID}`);
-            // }
+
   
             // Send message to the popup script
-            // if (VoiceID) {
+
               chrome.runtime.sendMessage({ type: 'YOUTUBE_VIDEO_ID', videoID, VoiceID });
-            // }
           }
           // Stop further reloading or actions on a YouTube page
           return;
-        } else {
-          console.log('Not a YouTube page');
-          // Reload the tab after a short delay
-          setTimeout(reloadTabUntilVideoIDAndSearch, 1000);
-        }
+        } 
+        // else {
+        //   console.log('Not a YouTube page');
+        //   // Reload the tab after a short delay
+        //   setTimeout(reloadTabUntilVideoIDAndSearch, 1000);
+        // }
       }
     });
   };
