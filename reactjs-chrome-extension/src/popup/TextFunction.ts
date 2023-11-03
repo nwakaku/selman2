@@ -16,7 +16,7 @@ export const convertTextToSpeech = async (
         method: 'POST',
         headers: {
           accept: 'audio/mpeg',
-          'xi-api-key': '0255ddbf57bf8f76892bb3d83cca41be',
+          'xi-api-key': '064e216a756be4471a362e5e5976928d',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({

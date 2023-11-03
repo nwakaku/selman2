@@ -42,7 +42,7 @@ export const handleVideo = () => {
 
 export async function uploadVoices(videoID) {
   console.log("uploading voice start");
-  const xiApiKey = "0255ddbf57bf8f76892bb3d83cca41be";
+  const xiApiKey = "064e216a756be4471a362e5e5976928d";
   const apiUrl = "https://api.elevenlabs.io/v1/voices/add";
 
   const voiceName = "X2";
