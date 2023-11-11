@@ -14,11 +14,9 @@
         "storage",
         "identity",
         "activeTab",
-        "scripting",
-        "https://www.youtube.com/*",
-        "http://localhost:5000/api/*"
+        "scripting"
     ],
-    "host_permissions": ["https://www.youtube.com/*"],
+    "host_permissions": ["https://www.youtube.com/*", "http://localhost:5000/api/*"],
     "icons": {
         "16" : "icon.png",
         "48" : "icon.png",

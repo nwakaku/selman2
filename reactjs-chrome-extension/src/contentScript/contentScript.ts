@@ -9,6 +9,7 @@ function play() {
 function pauseOnStart() {
   const videoElement = document.getElementsByClassName("video-stream html5-main-video")[0] as HTMLVideoElement;
   if (videoElement) {
+    videoElement.currentTime = 0;
     videoElement.pause();
   }
 }

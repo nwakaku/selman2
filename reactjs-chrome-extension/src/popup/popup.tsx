@@ -15,9 +15,7 @@ const Popup = () => {
   const [interpretationLanguage, setInterpretationLanguage] = useState("");
   const [inputLanguage, setInputLanguage] = useState("");
   const [parag, setParag] = useState("");
-  const [voiceRef, setVoiceRef] = useState();
   const [recording, setRecording] = useState("");
-  const [isPlaying, setIsPlaying] = useState(false);
 
   //this send message to the background script
   chrome.runtime.sendMessage({ type: "POPUP_READY" });
@@ -31,14 +29,6 @@ const Popup = () => {
         uploadVoicesCalled = true; // Set the flag to indicate that it's been called
 
         console.log("Received YouTube Video ID in popup:", videoID);
-
-        // Use the YouTube video ID in your popup script
-
-        // here is where the elevenlab voice
-        // if (interpretationLanguage) {
-        //   // setVoiceRef(voiceID.voice_id);
-        //   // voiceR = voiceID.voice_id;
-        // }
       }
     }
   );
@@ -65,40 +55,49 @@ const Popup = () => {
       const response = await fetch(
         `http://localhost:5000/api/captions?videoID=${videoID}&lang=${lang}`
       );
-      const VoiceR = await uploadVoices(videoID);
-
-      if (VoiceR) {
-        const data = await response.json();
-        const subtitles = data.subtitles;
-        // console.log(subtitles);
-        if (joinSubtitles(subtitles)) {
-          console.log(joinSubtitles(subtitles));
-          const getTranslation = async () => {
-            const joinedSubtitles = joinSubtitles(subtitles);
-            // setParag(joinedSubtitles);
-
-            const quicken = await translateText(
-              inputLanguage,
-              joinedSubtitles,
-              interpretationLanguage
-            );
-            const translatedText = quicken.data.translatedText;
-            console.log(translatedText);
-
-            convertTextToSpeech(VoiceR.voice_id, translatedText).then(
-              (audioUrl) => {
-                setRecording(audioUrl);
-              }
-            );
-
-            setParag(translatedText);
-          };
-          getTranslation();
-        } else {
-          console.log("nothing here");
+      const VoiceR = await fetch(
+        `http://localhost:5000/api/uploadVoice?videoID=${videoID}`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+          },
         }
-        setSubtitles(subtitles);
-      }
+      );
+
+      // if (VoiceR) {
+      //   const data = await response.json();
+      //   const data2 = await VoiceR.json();
+      //   const subtitles = data.subtitles;
+      //   // console.log(subtitles);
+      //   if (joinSubtitles(subtitles)) {
+      //     console.log(joinSubtitles(subtitles));
+      //     const getTranslation = async () => {
+      //       const joinedSubtitles = joinSubtitles(subtitles);
+      //       // setParag(joinedSubtitles);
+
+      //       const quicken = await translateText(
+      //         inputLanguage,
+      //         joinedSubtitles,
+      //         interpretationLanguage
+      //       );
+      //       const translatedText = quicken.data.translatedText;
+      //       console.log(translatedText);
+
+      //       convertTextToSpeech(data2.voice_id, translatedText).then(
+      //         (audioUrl) => {
+      //           setRecording(audioUrl);
+      //         }
+      //       );
+
+      //       setParag(translatedText);
+      //     };
+      //     getTranslation();
+      //   } else {
+      //     console.log("nothing here");
+      //   }
+      //   setSubtitles(subtitles);
+      // }
     } catch (error) {
       console.error("Error fetching subtitles:", error);
     }
@@ -112,16 +111,6 @@ const Popup = () => {
     setInterpretationLanguage(e.target.value);
     await fetchSubtitles(videoID, inputLanguage, e.target.value);
   };
-
-  const toggleVideo = () => {
-    // Toggle the isPlaying state
-    setIsPlaying(!isPlaying);
-
-    // Call the external handleVideo function here
-    handleVideo();
-  };
-
-  //
 
   pauseOnStart();
 

@@ -1,13 +1,3 @@
-export function toggleAudio() {
-  const audioElement = document.getElementById(
-    "audioElement"
-  ) as HTMLVideoElement;
-  if (audioElement) {
-    if (audioElement.paused) {
-      audioElement.play();
-    }
-  }
-}
 
 export const pauseOnStart = () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -18,14 +8,6 @@ export const pauseOnStart = () => {
       });
     }
   });
-  const audioElement = document.getElementById(
-    "audioElement"
-  ) as HTMLVideoElement;
-  if (audioElement) {
-    if (audioElement.played) {
-      audioElement.pause();
-    }
-  }
 };
 
 export const handleVideo = () => {
@@ -37,20 +19,21 @@ export const handleVideo = () => {
       });
     }
   });
-  toggleAudio();
+  // toggleAudio();
 };
 
+
 export async function uploadVoices(videoID) {
-  console.log("uploading voice start");
-  const xiApiKey = "064e216a756be4471a362e5e5976928d";
-  const apiUrl = "https://api.elevenlabs.io/v1/voices/add";
-
-  const voiceName = "X2";
-  const voiceDescription = "This is a test in progress";
-  const accentLabel = "African";
-  console.log("here");
-
   try {
+    console.log("uploading voice start");
+    const xiApiKey = "064e216a756be4471a362e5e5976928d";
+    const apiUrl = "https://api.elevenlabs.io/v1/voices/add";
+
+    const voiceName = "X2";
+    const voiceDescription = "This is a test in progress";
+    const accentLabel = "African";
+    console.log("here");
+
     const linkUrl = await downloadMp3(videoID); // Wait for the linkUrl before continuing
     console.log(linkUrl);
     const formData = new FormData();
@@ -87,10 +70,13 @@ export async function uploadVoices(videoID) {
     console.log(data);
     return data;
   } catch (error) {
-    console.error("An error occurred:", error.message);
+    console.error("An error occurred in uploadVoices:", error.message);
+    throw error; // Rethrow the error to be caught by the caller (fetchSubtitles)
   }
 }
 
+
+// c7c5abf083msh0117337ec749fcdp1724a3jsn5b375c8ee521
 async function downloadMp3(videoID) {
   console.log("cutting and downloading video");
 
